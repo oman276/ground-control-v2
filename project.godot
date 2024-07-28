@@ -14,3 +14,8 @@ config/name="Ground Control v2"
 run/main_scene="res://Objects/hex_map.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
+
+[editor]
+
+version_control/plugin_name="GitPlugin"
+version_control/autoload_on_startup=true
