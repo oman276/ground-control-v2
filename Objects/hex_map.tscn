@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=3 uid="uid://m51oaugrm43w"]
+
+[ext_resource type="TileSet" uid="uid://chf6521t2qj5y" path="res://Objects/temp_tilemap.tres" id="1_kkhg4"]
+[ext_resource type="Script" path="res://Scripts/hex_map_controller.gd" id="2_5xtqw"]
+
+[sub_resource type="Gradient" id="Gradient_r1v64"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0.245487, 0.407942, 0.761733, 1)
+colors = PackedColorArray(0.321569, 0, 0, 1, 0.321569, 0.498039, 0, 1, 0, 0, 0.831373, 1, 1, 1, 1, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_lnddw"]
+frequency = 0.094
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_cvwrn"]
+color_ramp = SubResource("Gradient_r1v64")
+noise = SubResource("FastNoiseLite_lnddw")
+
+[node name="HexMap" type="TileMap"]
+tile_set = ExtResource("1_kkhg4")
+format = 2
+layer_0/tile_data = PackedInt32Array(-65537, 1, 0, -65538, 1, 0, -2, 1, 0, -131074, 1, 0, -1, 65537, 0, -131072, 196609, 0, -131073, 65537, 0, -196608, 65537, 0, -131071, 65537, 0, -65536, 65537, 0, 0, 131073, 0, 65535, 131073, 0, 1, 131073, 0, -65535, 131073, 0, -131070, 131073, 0, -65534, 131073, 0, 2, 131073, 0, -131075, 1, 0, -65539, 1, 0, -196610, 1, 0, -196609, 1, 0)
+script = ExtResource("2_5xtqw")
+noise_height_text = SubResource("NoiseTexture2D_cvwrn")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.4, 0.4)
+
+[node name="MoveDelayTimer" type="Timer" parent="."]
+wait_time = 0.35

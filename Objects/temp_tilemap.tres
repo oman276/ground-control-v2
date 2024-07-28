@@ -1,0 +1,31 @@
+[gd_resource type="TileSet" load_steps=5 format=3 uid="uid://chf6521t2qj5y"]
+
+[ext_resource type="Texture2D" uid="uid://doslwxj15uwcd" path="res://Assets/Temp/hex_grid.png" id="1_jy3km"]
+[ext_resource type="Texture2D" uid="uid://0j2psw3g3aut" path="res://Assets/Temp/my_grid_temp.png" id="2_t8kxw"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uolnu"]
+texture = ExtResource("1_jy3km")
+margins = Vector2i(8, 2)
+separation = Vector2i(19, 31)
+texture_region_size = Vector2i(110, 110)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_g6dv0"]
+texture = ExtResource("2_t8kxw")
+margins = Vector2i(15, 0)
+separation = Vector2i(15, 0)
+texture_region_size = Vector2i(112, 128)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+
+[resource]
+tile_shape = 3
+tile_size = Vector2i(112, 128)
+sources/0 = SubResource("TileSetAtlasSource_uolnu")
+sources/1 = SubResource("TileSetAtlasSource_g6dv0")
