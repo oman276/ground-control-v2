@@ -12,11 +12,12 @@ var min_y : int
 var max_x : int
 var max_y : int
 
-var source_id = 1
+var source_id = 2
 var cliff_atlas = Vector2i(0, 0)
 var land_atlas = Vector2i(1, 0)
 var pit_atlas = Vector2i(2, 0)
 var player_atlas = Vector2i(3, 0)
+var mouse_target_atlas = Vector2i(1, 1)
 
 var tile_dict = {}
 var ground_tiles = []
@@ -24,7 +25,14 @@ var ground_tiles = []
 enum ACTION_STATE {LOCKED, MOVE}
 var current_state = ACTION_STATE.MOVE
 
+var ground_layer : int = 0
+var fog_layer : int = 1
+var ui_layer : int = 2
+var path_ui_layer : int = 3
+
 var player_pos
+var last_mouse_pos
+var highlighted_cells = []
 
 func _ready():
 	min_x = -(width/2)
@@ -59,7 +67,7 @@ func generate_world():
 				#place pit
 				target_atlas = pit_atlas
 				target_state = GameTile.STATE.PIT
-			set_cell(0, placed_location, source_id, target_atlas)
+			set_cell(ground_layer, placed_location, source_id, target_atlas)
 			tile_dict[placed_location] = GameTile.new(target_state, placed_location, index)
 			index = index + 1
 			if target_state == GameTile.STATE.GROUND:
@@ -103,19 +111,45 @@ func generate_world():
 	#set location	
 	#select random player starting location
 	var random_spawn = ground_tiles[randi() % ground_tiles.size()]
-	set_cell(0, random_spawn, source_id, player_atlas)
+	set_cell(ui_layer, random_spawn, source_id, player_atlas)
 	player_pos = random_spawn
 
 func _input(event):
-	if event is InputEventMouseButton:
-		if current_state == ACTION_STATE.MOVE:
+	if current_state == ACTION_STATE.MOVE:
+		if event is InputEventMouseButton:
 			if event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
 				var global_clicked = get_local_mouse_position()
 				var pos_clicked = local_to_map(to_local(global_clicked))
 				var associated_object = tile_dict[pos_clicked]
 				if (associated_object):
-					#print(pos_clicked)
 					try_move_player(pos_clicked)
+		if event is InputEventMouseMotion:
+			var global_pos = get_local_mouse_position()
+			var map_pos = local_to_map(to_local(global_pos))
+			if(last_mouse_pos != map_pos):
+				if(last_mouse_pos != null):
+					set_cell(path_ui_layer, last_mouse_pos, -1, mouse_target_atlas)
+				last_mouse_pos = map_pos
+				if(validCoord(map_pos)):
+					set_cell(path_ui_layer, map_pos, source_id, mouse_target_atlas)
+					if(map_pos == player_pos):
+						return
+					for i in range(highlighted_cells.size()):
+						if(highlighted_cells[i] != map_pos):
+							set_cell(path_ui_layer, highlighted_cells[i], -1, mouse_target_atlas)
+					highlighted_cells = []
+					var player_cell = tile_dict[player_pos]
+					var mouse_cell = tile_dict[map_pos]
+					if(player_cell.h_row == mouse_cell.h_row):
+						if(player_cell.x < mouse_cell.x):
+							
+				#if (last_mouse_pos.size() > 0):
+					#for pos in last_mouse_pos.size():
+						#set_cell(path_ui_layer, last_mouse_pos[pos], -1, target_atlas)
+						#last_mouse_pos.erase(last_mouse_pos[pos])
+					##set_cell(path_ui_layer, last_mouse_pos, -1, target_atlas)
+				#last_mouse_pos.append(map_pos)
+				#set_cell(path_ui_layer, map_pos, source_id, target_atlas)
 
 func validCoord(c : Vector2i):
 	return (c.x <= max_x && c.x >= min_x && c.y <= max_y && c.y >= min_y)
@@ -167,43 +201,35 @@ func try_move_player(target_pos : Vector2i):
 				await move_delay_timer.timeout
 	elif (target_cell.u_row == current_cell.u_row):
 		if (target_pos.y < player_pos.y):
-			print("UP -> DECY")
 			while (player_pos != target_pos):
 				var new_pos = Vector2i(player_pos.x, player_pos.y - 1)
 				if (new_pos.y % 2 == 0):
 					new_pos.x = new_pos.x + 1
-				print(new_pos)
 				set_player_pos(new_pos)
 				move_delay_timer.start()
 				await move_delay_timer.timeout
 		else:
-			print("UP -> INCY")
 			while (player_pos != target_pos):
 				var new_pos = Vector2i(player_pos.x, player_pos.y + 1)
 				if (new_pos.y % 2 != 0):
 					new_pos.x = new_pos.x - 1
-				print(new_pos)
 				set_player_pos(new_pos)
 				move_delay_timer.start()
 				await move_delay_timer.timeout
 	else: 
 		if (target_pos.y < player_pos.y):
-			print("DOWN -> DECY")
 			while (player_pos != target_pos):
 				var new_pos = Vector2i(player_pos.x, player_pos.y - 1)
 				if (new_pos.y % 2 != 0):
 					new_pos.x = new_pos.x - 1
-				print(new_pos)
 				set_player_pos(new_pos)
 				move_delay_timer.start()
 				await move_delay_timer.timeout
 		else:
-			print("DOWN -> INCY")
 			while (player_pos != target_pos):
 				var new_pos = Vector2i(player_pos.x, player_pos.y + 1)
 				if (new_pos.y % 2 == 0):
 					new_pos.x = new_pos.x + 1
-				print(new_pos)
 				set_player_pos(new_pos)
 				move_delay_timer.start()
 				await move_delay_timer.timeout
@@ -212,7 +238,9 @@ func try_move_player(target_pos : Vector2i):
 	return true
 
 func set_player_pos(new_position : Vector2i):
-	set_cell(0, player_pos, source_id, land_atlas)
+	set_cell(ui_layer, player_pos, -1, land_atlas)
 	player_pos = new_position
-	set_cell(0, player_pos, source_id, player_atlas)
+	set_cell(ui_layer, player_pos, source_id, player_atlas)
 
+func swap_state(new_state : ACTION_STATE):
+	pass
